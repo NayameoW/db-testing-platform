@@ -10,12 +10,15 @@ import history.Operation;
 import history.Transaction;
 import javafx.util.Pair;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
+import util.Profiler;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
 @Data
+@Slf4j
 public class C4<KeyType, ValType> implements Checker<KeyType, ValType> {
     private History<KeyType, ValType> history;
 
@@ -30,6 +33,8 @@ public class C4<KeyType, ValType> implements Checker<KeyType, ValType> {
     private final Map<KeyType, Set<Pair<Node<KeyType, ValType>, Node<KeyType, ValType>>>> WREdges = new HashMap<>();
     private final Map<Operation<KeyType, ValType>, Node<KeyType, ValType>> op2node = new HashMap<>();
     private final Set<Operation<KeyType, ValType>> internalWrites = new HashSet<>();
+
+    private Profiler profiler = Profiler.getInstance();
 
     private static final Long ZERO = 0L;
 
@@ -53,6 +58,7 @@ public class C4<KeyType, ValType> implements Checker<KeyType, ValType> {
     private void buildCO() {
         var hist = history.getFlatTransactions();
         Map<Long, Node<KeyType, ValType>> prevNodes = new HashMap<>();
+        int txnId = 0;
 
         for (var txn: hist) {
             if (!txn.isSuccess()) {
@@ -138,6 +144,8 @@ public class C4<KeyType, ValType> implements Checker<KeyType, ValType> {
             }
             updateVec(new HashSet<>(), node, node, Edge.Type.CO);
         }
+
+
     }
 
     private void checkCOBP() {
